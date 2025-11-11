@@ -14,4 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// show workout entry form
 Route::get('/', [PageController::class, 'show_form']);
+
+// preview workout
+Route::post('/preview', [PageController::class, 'preview_workout'])->name('workout.preview');
+
+// begin workout
+Route::post('/workout', [PageController::class, 'begin_workout'])->name('workout.begin');
