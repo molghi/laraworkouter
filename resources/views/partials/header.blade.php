@@ -6,8 +6,8 @@
         {{-- header buttons --}}
         <div class="flex items-center gap-5 text-[16px]">
             <a href="/" title="Add New Workout" class="bg-green-400 transition opacity-50 hover:opacity-100 text-gray-900 px-4 py-1 rounded hover:bg-green-500">New</a>
-            <a href="#" title="View Saved Workouts" class="bg-blue-400 transition opacity-50 hover:opacity-100 text-gray-900 px-4 py-1 rounded hover:bg-blue-500">Saved</a>
-            <a href="#" title="View Personal Statistics" class="bg-orange-400 transition opacity-50 hover:opacity-100 text-gray-900 px-4 py-1 rounded hover:bg-orange-500">Stats</a>
+            <a href="/saved" title="View Saved Workouts" class="bg-blue-400 transition opacity-50 hover:opacity-100 text-gray-900 px-4 py-1 rounded hover:bg-blue-500">Saved</a>
+            <a href="/stats" title="View Personal Statistics" class="bg-yellow-400 transition opacity-50 hover:opacity-100 text-gray-900 px-4 py-1 rounded hover:bg-yellow-500">Stats</a>
         </div>
     </div>
 </header>

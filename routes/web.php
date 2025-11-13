@@ -22,3 +22,15 @@ Route::post('/preview', [PageController::class, 'preview_workout'])->name('worko
 
 // begin workout
 Route::post('/workout', [PageController::class, 'begin_workout'])->name('workout.begin');
+
+// show saved workouts
+Route::get('/saved', [PageController::class, 'show_saved']);
+
+// show personal stats
+Route::get('/stats', [PageController::class, 'show_stats']);
+
+// show finish workout screen
+Route::post('/finish', [PageController::class, 'finish_workout'])->name('workout.finish');
+
+// register workout
+Route::post('/workouts', [PageController::class, 'register_workout'])->name('workout.register');

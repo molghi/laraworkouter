@@ -12,7 +12,7 @@
     const exercisesEl = document.querySelector('.exercises');
     const totalTimeEl = document.querySelector('.total-time');
 
-    let secondsToPrepare = 8;
+    let secondsToPrepare = 4;
     const formsDisplacement = '-250px'; // by x axis
     let workoutTimer; // for interval timer
     let workoutTime = 0; // for current stage of workout
@@ -30,12 +30,14 @@
     const exercisesInRoundNum = exercisesArr.length;
 
     // dev mode, testing purposes
-    workTimeSeconds = 7;
-    restTimeSeconds = 7;
-    roundsNum = 2;
+    // workTimeSeconds = 7;
+    // restTimeSeconds = 7;
+    // roundsNum = 2;
 
-    const myVoice = 'Alex';
-    // const myVoice = 'Samantha';
+    // const myVoice = 'Alex';
+    // const myVoice = 'Google UK English Female';
+    // const myVoice = 'Microsoft Zira Desktop';
+    const myVoice = 'Samantha';
 
     // on clicking Start btn - workout begins
     startBtnEl.addEventListener('click', beginWorkout)
@@ -83,6 +85,7 @@
             convertAndShow(workoutTime, timerTimeEl);
             convertAndShow(workoutTotalTime, totalTimeEl);
             highlightCurrentExercise();
+            currentRoundEl.textContent = currentRoundIndex+1;
 
             workoutTimer = setInterval(() => {
                 // log total time counting up
@@ -173,6 +176,23 @@
     function finishWorkout () {
         clearInterval(workoutTimer);
 
+        resetInterface();
+
+        changeButtons('finish');
+        
+        // print real world time when ended
+        printWorkoutStartEnd('end');
+
+        // say how long it took
+        const [tookMins,tookSecs] = totalTimeEl.textContent.split(':');
+        speak(`Workout finished! Well done! 
+            It took ${+tookMins} minutes, ${+tookSecs} seconds. 
+            Now it is ${new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date())}.`, myVoice);
+    }
+
+    // ==========================================================================================
+
+    function resetInterface (flag = 'finished') {
         // reset text
         timerTimeEl.textContent = `00:00`;
         timerTextEl.textContent = 'Finished!';
@@ -186,15 +206,11 @@
         exercisesEl.querySelectorAll('.exercise').forEach((el, ind) => {
             el.style.opacity = 1;
         })
-        
-        // print real world time when ended
-        printWorkoutStartEnd('end');
 
-        // say how long it took
-        const [tookMins,tookSecs] = totalTimeEl.textContent.split(':');
-        speak(`Workout finished! Well done! 
-            It took ${+tookMins} minutes, ${+tookSecs} seconds. 
-            Now it is ${new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date())}.`, myVoice);
+        if (flag === 'stopped') {
+            totalTimeEl.textContent = '00:00'
+            timerTextEl.textContent = 'Stopped';
+        }
     }
 
     // ==========================================================================================
@@ -211,11 +227,11 @@
     // change text color on timer, visual cue (work/rest time)
     function paintTimer (flag) {
         if (flag === 'work') {
-            timerBoxEl.classList.remove('text-[limegreen]');
+            timerBoxEl.classList.remove('text-[limegreen]', 'text-[coral]', 'text-[antiquewhite]');
             timerBoxEl.classList.add('text-[yellow]');
             timerBoxEl.style.textShadow = '0 0 4px yellow';
         } else {
-            timerBoxEl.classList.remove('text-[yellow]');
+            timerBoxEl.classList.remove('text-[yellow]', 'text-[coral]', 'text-[antiquewhite]');
             timerBoxEl.classList.add('text-[limegreen]');
             timerBoxEl.style.textShadow = '0 0 4px limegreen';
         }
@@ -254,6 +270,7 @@
             timerBoxEl.classList.add('text-[coral]');
             timerBoxEl.style.textShadow = '0 0 4px coral';
             timerTextEl.textContent = 'Get Ready!';
+            changeButtons('begin');
 
             const prepareTimer = setInterval(() => {
                 secondsToPrepare -= 1; // start ticking
@@ -272,20 +289,123 @@
 
     // ==========================================================================================
 
+    function changeButtons (flag) {
+        const btnsContainer = document.querySelector('.buttons-container');
+        const firstLayerBtns = document.querySelectorAll('.buttons-container > button');
+        // as workout begins, show two btns: Pause/Resume (timer) and Stop/Start (resets all timers)
+        if (flag === 'begin') {
+            firstLayerBtns.forEach(x => x.remove()); 
+            btnsContainer.insertAdjacentHTML('beforeend', `
+                <button class="pause-btn bg-[skyblue] text-gray-900 px-4 py-2 rounded transition hover:opacity-60">Pause</button>
+                <button class="stop-btn bg-orange-600 text-gray-900 px-4 py-2 rounded transition hover:opacity-60">Stop</button>
+            `);
+            document.querySelector('.pause-btn').addEventListener('click', pauseResumeWorkout);
+            document.querySelector('.stop-btn').addEventListener('click', stopStartWorkout);
+        }
+        // click Pause
+        if (flag === 'clicked pause') {
+            document.querySelector('.pause-btn').textContent = 'Resume';
+        }
+        // click Resume
+        if (flag === 'clicked resume') {
+            document.querySelector('.pause-btn').textContent = 'Pause';
+        }
+        // click Stop
+        if (flag === 'clicked stop') {
+            document.querySelector('.pause-btn').classList.add('opacity-50', 'pointer-events-none'); // disable it
+            document.querySelector('.stop-btn').textContent = 'Start';
+        }
+        // click Start
+        if (flag === 'clicked start') {
+            document.querySelector('.pause-btn').classList.remove('opacity-50', 'pointer-events-none'); // enable it
+            document.querySelector('.stop-btn').textContent = 'Stop';
+        }
+        // workout finished, show Finish btn
+        if (flag === 'finish') {
+            firstLayerBtns.forEach(x => x.remove()); 
+            document.querySelector('.finish-form').classList.remove('hidden');
+            // fill out hidden inputs
+            document.querySelector('input[name="real_total_duration"]').value = workoutTotalTime;
+
+            const now = new Date();
+            const formatted = now.getFullYear() + '-' +
+            String(now.getMonth()+1).padStart(2,'0') + '-' +
+            String(now.getDate()).padStart(2,'0') + ' ' +
+            String(now.getHours()).padStart(2,'0') + ':' +
+            String(now.getMinutes()).padStart(2,'0') + ':' +
+            String(now.getSeconds()).padStart(2,'0');
+
+            document.querySelector('input[name="finished_at"]').value = formatted;
+        }
+    }
+
+    // ==========================================================================================
+
+    function pauseResumeWorkout (e) {
+        if (e.target.textContent === 'Pause') {
+            // pause timer
+            clearInterval(workoutTimer);
+            console.log(workoutTime);
+            console.log(workoutTotalTime);
+            // change btn text to Resume
+            changeButtons('clicked pause');
+            speak('Paused.')
+        } else {
+            // clicked Resume: resume timer
+            console.log('resume')
+            workout();
+            // change btn text to Pause
+            changeButtons('clicked resume');
+            speak('Resumed.')
+        }
+    }
+
+    // ==========================================================================================
+
+    function stopStartWorkout (e) {
+        if (e.target.textContent === 'Stop') {
+            // stop timer, reset it
+            clearInterval(workoutTimer);
+            workoutTime = 0;
+            workoutTotalTime = 0;
+            currentExerciseIndex = 0;
+            currentRoundIndex = 0;
+            nowIsWork = true;
+            // change btn text to Start
+            changeButtons('clicked stop');
+            // reset interface
+            resetInterface('stopped');
+            speak('Stopped.')
+        } else {
+            // clicked Start: restart workout
+            console.log('start over');
+            workout();
+            // change btn text to Stop
+            changeButtons('clicked start');
+            speak('Restarted.')
+            timerTextEl.textContent = 'Work';
+        }
+    }
+
+    // ==========================================================================================
+
     // print when it started and then when it ended
     function printWorkoutStartEnd (flag) {
         const now = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date());
         const word = flag === 'start' ? 'Started at' : 'Ended at';
+        const elClass = `${flag}-msg`;
         if (!document.querySelector('.start-end')) { // insert container element
             document.querySelector('main').insertAdjacentHTML('afterend', '<div class="start-end flex gap-12 justify-center mb-4 opacity-40 hover:opacity-100 transition duration-300"></div>')
         }
-        document.querySelector('.start-end').insertAdjacentHTML('beforeend', `<div class="text-white">${word}: ${now}</div>`)        
+        if (!document.querySelector(`.${elClass}`)) {
+            document.querySelector('.start-end').insertAdjacentHTML('beforeend', `<div class="${elClass} text-white">${word}: ${now}</div>`);
+        }
     }
 
     // ==========================================================================================
 
     // say something
-    function speak(text, voiceName = 'Alex') {
+    function speak(text, voiceName = myVoice) {
         const utter = new SpeechSynthesisUtterance(text);
         if (voiceName) {
             const voice = speechSynthesis.getVoices().find(v => v.name === voiceName);

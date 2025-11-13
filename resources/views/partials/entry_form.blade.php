@@ -44,7 +44,7 @@
                         name="{{ $field[0] }}" 
                         id="{{ $field[0] }}" 
                         type="{{ $field[0] === 'name' ? 'text' : 'number' }}" 
-                        min="0" 
+                        min="1" 
                         placeholder="{{ $field[2] }}" 
                         value="{{ $old_form_data[$field[0]] }}"
                         class="flex-1 p-2 rounded bg-[#111] transition focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-gray-900">

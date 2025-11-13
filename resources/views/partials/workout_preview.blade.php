@@ -42,6 +42,8 @@
     </div>
     <form action="{{ route('workout.begin') }}" method="POST">
         @csrf 
+        <input type="hidden" name="">
+        <input type="hidden">
         <button type="submit" class="bg-yellow-400 transition text-gray-900 px-4 py-2 rounded hover:bg-yellow-500">Begin ></button>
     </form>
   </div>
