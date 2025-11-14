@@ -14,7 +14,7 @@
 
     let secondsToPrepare = 4;
     const formsDisplacement = '-250px'; // by x axis
-    let workoutTimer; // for interval timer
+    let workoutTimer, prepareTimer; // for interval timer
     let workoutTime = 0; // for current stage of workout
     let workoutTotalTime = 0; // workout overall
     let currentRoundIndex = 0;
@@ -69,16 +69,16 @@
         // start ticking, main workout time
         await workout();
 
-        finishWorkout();
+        // finishWorkout();
     }
 
     // ==========================================================================================
 
     async function workout () {
-        let inMins, remainingSecs;
-        let inMinsTotal, remainingSecsTotal;
+        // let inMins, remainingSecs, inMinsTotal, remainingSecsTotal;
         printWorkoutStartEnd('start'); // print when started
         speak('Go!', myVoice); // audial command
+        changeButtons('main workout');
         return new Promise((resolve, reject) => {
             workoutTime = workTimeSeconds; // after 'get ready' secs are over, it starts w/ exercise time (work time)
             paintTimer('work');
@@ -87,28 +87,37 @@
             highlightCurrentExercise();
             currentRoundEl.textContent = currentRoundIndex+1;
 
-            workoutTimer = setInterval(() => {
-                // log total time counting up
+            // startTicking(inMins, remainingSecs, inMinsTotal, remainingSecsTotal, resolve)
+            startTicking(resolve)
+        })
+    }
+
+    // ==========================================================================================
+
+    function startTicking(resolve) {
+        workoutTimer = setInterval(() => {
+                // increment & log total workout time
                 workoutTotalTime += 1;
                 convertAndShow(workoutTotalTime, totalTimeEl);
 
-                // log current workout stage time counting down
+                // decrement & log current workout stage time
                 workoutTime -= 1;
                 highlightCurrentExercise();
 
-                // say something 5 secs before work time:
+                // announce exercise 5 secs before work time:
                 let isLastInRound = currentExerciseIndex+1 === exercisesInRoundNum;
                 let isLastRound = currentRoundIndex === roundsNum -1;
                 if (workoutTime === 5 && !nowIsWork) {
                     if (isLastInRound && !isLastRound) {
                         speak(`Next exercise: ${exercisesArr[0]}.`, myVoice);
                     } else if (isLastInRound && isLastRound) {
-                        console.log(`it's done`);
+                        console.log(`It's done.`);
                     } else {
                         speak(`Next exercise: ${exercisesArr[currentExerciseIndex+1]}.`, myVoice);
                     }
                 }
 
+                // if current stage time is negative
                 if (workoutTime < 0) {
                     // change current stage timer to work/rest time
                     if (nowIsWork) { 
@@ -136,8 +145,11 @@
                         if (currentExerciseIndex === exercisesInRoundNum) {
                             currentExerciseIndex = 0; // reset exercises
                             currentRoundIndex += 1; // increment round
+
                             // check current round count -- proceed or finish workout
                             if (currentRoundIndex === roundsNum) {
+                                // clearInterval(workoutTimer);
+                                finishWorkout();
                                 resolve(); // finishes it
                                 return;
                             } else {
@@ -151,7 +163,6 @@
                     convertAndShow(workoutTime, timerTimeEl);
                 }
             }, 1000);
-        })
     }
 
     // ==========================================================================================
@@ -272,7 +283,7 @@
             timerTextEl.textContent = 'Get Ready!';
             changeButtons('begin');
 
-            const prepareTimer = setInterval(() => {
+            prepareTimer = setInterval(() => {
                 secondsToPrepare -= 1; // start ticking
                 timerTimeEl.textContent = '00:' + padIt(secondsToPrepare);
                 if (secondsToPrepare === 6) {
@@ -280,6 +291,7 @@
                 }
                 if (secondsToPrepare === 0) { // stop Get Ready timer
                     clearInterval(prepareTimer);
+                    prepareTimer = null;
                     timerTextEl.textContent = 'Work';
                     resolve();
                 }
@@ -296,11 +308,15 @@
         if (flag === 'begin') {
             firstLayerBtns.forEach(x => x.remove()); 
             btnsContainer.insertAdjacentHTML('beforeend', `
-                <button class="pause-btn bg-[skyblue] text-gray-900 px-4 py-2 rounded transition hover:opacity-60">Pause</button>
-                <button class="stop-btn bg-orange-600 text-gray-900 px-4 py-2 rounded transition hover:opacity-60">Stop</button>
+                <button class="pause-btn bg-[skyblue] text-gray-900 px-4 py-2 rounded transition hover:opacity-60 opacity-30 pointer-events-none">Pause</button>
+                <button class="stop-btn bg-orange-600 text-gray-900 px-4 py-2 rounded transition hover:opacity-60 opacity-30 pointer-events-none">Stop</button>
             `);
             document.querySelector('.pause-btn').addEventListener('click', pauseResumeWorkout);
             document.querySelector('.stop-btn').addEventListener('click', stopStartWorkout);
+        }
+        if (flag === 'main workout') { // make them clickable
+            document.querySelector('.pause-btn').classList.remove('opacity-30', 'pointer-events-none');
+            document.querySelector('.stop-btn').classList.remove('opacity-30', 'pointer-events-none');
         }
         // click Pause
         if (flag === 'clicked pause') {
@@ -334,7 +350,6 @@
             String(now.getHours()).padStart(2,'0') + ':' +
             String(now.getMinutes()).padStart(2,'0') + ':' +
             String(now.getSeconds()).padStart(2,'0');
-
             document.querySelector('input[name="finished_at"]').value = formatted;
         }
     }
@@ -366,6 +381,7 @@
         if (e.target.textContent === 'Stop') {
             // stop timer, reset it
             clearInterval(workoutTimer);
+            workoutTimer = null;
             workoutTime = 0;
             workoutTotalTime = 0;
             currentExerciseIndex = 0;
@@ -378,7 +394,6 @@
             speak('Stopped.')
         } else {
             // clicked Start: restart workout
-            console.log('start over');
             workout();
             // change btn text to Stop
             changeButtons('clicked start');

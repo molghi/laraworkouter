@@ -6,6 +6,15 @@
     $this_month_last_day = date('d', strtotime('last day of this month'));
     $this_month_start = date('w', strtotime('first day of this month')); // offset
     $day_now = date('d');
+
+    $workout_days = [];
+    foreach ($finished_workouts as $entry) {
+        $only_date = substr($entry['finished_at'], 0, 10); // year-month-day
+        $only_day = explode('-', $only_date)[2]; // only day
+        if (explode('-', $only_date)[1] === $month_now && !in_array($only_day, $workout_days)) {
+            array_push($workout_days, $only_day);
+        }
+    }
 @endphp
 
 
@@ -27,6 +36,7 @@
         @for($i = 0; $i < $this_month_last_day; $i++)
             <div class="border border-white text-center py-2 bg-black/40 
                     {{ $i+1 < $day_now ? 'opacity-30' : '' }}
+                    {{ in_array($i+1, $workout_days) ? 'bg-white text-black' : '' }}
                     " 
                 style="flex: 0 1 calc(100%/7)">{{ $i+1 }}</div>
         @endfor
@@ -34,6 +44,8 @@
 
     {{-- frequency --}}
     <div class="text-center">
-        <span class="font-bold opacity-50">Worked out:</span> 0 out of {{ $this_month_last_day }} days
+        <span class="font-bold opacity-50">Worked out:</span> 
+        {{ count($workout_days) }} out of {{ $this_month_last_day }} days
+        ({{ floor((count($workout_days)/$this_month_last_day)*100) }}%)
     </div>
 </div>

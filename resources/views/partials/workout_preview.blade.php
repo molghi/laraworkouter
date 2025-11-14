@@ -36,9 +36,9 @@
 
   {{-- action btn --}}
   <div class="flex items-end justify-between">
-    <a href="/" class="bg-green-500 transition text-gray-900 px-4 py-2 rounded hover:bg-green-600">< Edit</a>
+    <a href="/form" class="bg-green-500 transition text-gray-900 px-4 py-2 rounded hover:bg-green-600">< Edit</a>
     <div>
-        <span class="opacity-50">Total Duration:</span> {{ floor($total_duration/60) }}m {{ floor($total_duration%60) }}s 
+        <span class="opacity-50">Approximate Total Duration:</span> {{ floor($total_duration/60) }}m {{ floor($total_duration%60) }}s 
     </div>
     <form action="{{ route('workout.begin') }}" method="POST">
         @csrf 

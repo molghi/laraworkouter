@@ -1,6 +1,6 @@
 # Workout Companion
 
-A simple web app to plan and track workouts. Built with Laravel and Tailwind CSS.
+A simple web app to plan and track workouts. Built with Laravel, Tailwind CSS, and pure JavaScript.
 
 ## Features
 

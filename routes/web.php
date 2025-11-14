@@ -14,8 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// root route: redirects to stats
+Route::get('/', function () { return redirect('/stats'); });
+
 // show workout entry form
-Route::get('/', [PageController::class, 'show_form']);
+Route::get('/form', [PageController::class, 'show_form']);
 
 // preview workout
 Route::post('/preview', [PageController::class, 'preview_workout'])->name('workout.preview');
@@ -34,3 +37,6 @@ Route::post('/finish', [PageController::class, 'finish_workout'])->name('workout
 
 // register workout
 Route::post('/workouts', [PageController::class, 'register_workout'])->name('workout.register');
+
+// pre-fill form with saved workout
+Route::post('/form', [PageController::class, 'fillout_workout'])->name('workout.select');

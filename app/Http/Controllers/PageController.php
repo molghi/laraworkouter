@@ -8,7 +8,10 @@ use Illuminate\Http\Request;
 class PageController extends Controller
 {
     public function show_form () {
-        return view('form');
+        $data = [
+            'saved_workouts' => Workout::whereNotNull('finished_at')->get()
+        ];
+        return view('form', $data);
     }
 
     // ==================================================
@@ -16,7 +19,7 @@ class PageController extends Controller
     public function preview_workout (Request $request) {
         // persist old form data
         $old_form_data = $request->except('_token');
-        session(['old_form_data' => $old_form_data]);
+        session(['old_form_data' => $old_form_data, 'last_set' => date('Y-m-d')]);
 
         // validate
         $data = $request->validate([
@@ -40,21 +43,35 @@ class PageController extends Controller
     public function begin_workout () {
         $workout_data_for_db = session('workout_data');
         $workout_data_for_db['exercises'] = json_encode($workout_data_for_db['exercises']);
-        $workout = Workout::create($workout_data_for_db);
-        session(['current_workout_id' => $workout['id']]);
+        // checking not to store duplicates
+        if (!Workout::where('work', $workout_data_for_db['work'])
+            ->where('rest', $workout_data_for_db['rest'])
+            ->where('rounds', $workout_data_for_db['rounds'])
+            ->where('workout', $workout_data_for_db['workout'])
+            ->exists()
+            ) {
+                $workout = Workout::create($workout_data_for_db);
+                session(['current_workout_id' => $workout['id']]);
+            }
         return view('workout');
     }
 
     // ==================================================
 
     public function show_saved () {
-        return view('saved');
+        $data = [
+            'finished_workouts' => Workout::whereNotNull('finished_at')->get()
+        ];
+        return view('saved', $data);
     }
 
     // ==================================================
 
     public function show_stats () {
-        return view('stats');
+        $data = [
+            'finished_workouts' => Workout::whereNotNull('finished_at')->get()
+        ];
+        return view('stats', $data);
     }
 
     // ==================================================
@@ -82,7 +99,17 @@ class PageController extends Controller
         session(['current_workout_id' => 0]);
         $finished_workouts = Workout::whereNotNull('finished_at')->get();
         session(['finished_workouts' => $finished_workouts]);
-        return redirect('/saved');
+        return redirect('/stats');
+    }
+
+    // ==================================================
+
+    public function fillout_workout (Request $request) {
+        // $workout = ;
+        $data = [
+            'workout' => Workout::find($request['id'])
+        ];
+        return view('form', $data);
     }
 
     // ==================================================
